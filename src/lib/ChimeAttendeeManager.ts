@@ -40,6 +40,7 @@ class ChimeAttendeeManager {
         console.log('import.meta.dirname', import.meta.dirname)
         console.log('os.platform', os.platform())
         console.log('process.env.', process.env.CUSTOM_ASSETS_FOLDER)
+        console.log('enableMic', enableMic)
         const platform = os.platform();
         const assetsFolder = process.env.CUSTOM_ASSETS_FOLDER || `${import.meta.dirname}/assets`;
         const browser: Browser = await chromium.launch({
@@ -104,14 +105,14 @@ class ChimeAttendeeManager {
 
             await page.waitForLoadState();
 
-            // try {
-            //     await page.click('button[data-id="awsccc-cb-btn-accept"]', {
-            //         force: true,
-            //         timeout: 2000
-            //     });
-            // } catch (error) {
-            //     console.error(error);
-            // }
+            try {
+                await page.click('button[data-id="awsccc-cb-btn-accept"]', {
+                    force: true,
+                    timeout: 1000
+                });
+            } catch (error) {
+                console.error(error);
+            }
 
             if (!enableMic) {
                 const locator = page.locator('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input');
