@@ -4,6 +4,7 @@ import { chromium } from 'playwright';
 import type { Browser, Page } from 'playwright';
 import type { MeetingStatus } from '$lib/types';
 import { uniqueId } from 'lodash-es';
+import os from 'os';
 
 interface Bot {
     id: string,
@@ -37,13 +38,17 @@ class ChimeAttendeeManager {
 
     private async launchBot(meetingId: string, enableCamera: boolean, enableMic: boolean): Promise<void> {
         console.log('import.meta.dirname', import.meta.dirname)
+        console.log('os.platform', os.platform())
+        console.log('process.env.', process.env.CUSTOM_ASSETS_FOLDER)
+        const platform = os.platform();
+        const assetsFolder = process.env.CUSTOM_ASSETS_FOLDER || `${import.meta.dirname}/assets`;
         const browser: Browser = await chromium.launch({
-            headless: true,
+            headless: platform !== 'darwin' && platform !== 'win32',
             args: [
                 '--use-fake-ui-for-media-stream',
                 '--use-fake-device-for-media-stream',
-                `--use-file-for-fake-video-capture=${import.meta.dirname}/assets/test_video.y4m`,
-                `--use-file-for-fake-audio-capture=${import.meta.dirname}/assets/test_audio.wav`,
+                `--use-file-for-fake-video-capture=${assetsFolder}/test_video.y4m`,
+                `--use-file-for-fake-audio-capture=${assetsFolder}/assets/test_audio.wav`,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
@@ -87,14 +92,14 @@ class ChimeAttendeeManager {
 
             await page.waitForLoadState();
 
-            try {
-                await page.click('button[data-id="awsccc-cb-btn-accept"]', {
-                    force: true,
-                    timeout: 2000
-                });
-            } catch (error) {
-                console.error(error);
-            }
+            // try {
+            //     await page.click('button[data-id="awsccc-cb-btn-accept"]', {
+            //         force: true,
+            //         timeout: 2000
+            //     });
+            // } catch (error) {
+            //     console.error(error);
+            // }
 
             if (!enableMic) {
                 const locator = page.locator('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input');
