@@ -96,8 +96,14 @@ class ChimeAttendeeManager {
 
             await page.waitForLoadState();
 
-            await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
-            await page.press('input[id="name"]', String(this.meetings[meetingId].bots.length + 1));
+
+            try {
+                await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
+                await page.press('input[id="name"]', String(this.meetings[meetingId].bots.length + 1));
+            } catch (error) {
+                console.error(error)
+                console.log(await page.content())
+            }
 
             await page.click('button.Button--enabled:has-text("Join meeting now")', {
                 timeout: 20000,
@@ -111,7 +117,7 @@ class ChimeAttendeeManager {
                     timeout: 1000
                 });
             } catch (error) {
-                console.error(error);
+                
             }
 
             if (!enableMic) {
