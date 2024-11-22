@@ -94,8 +94,11 @@ class ChimeAttendeeManager {
 
             await page.goto(`https://app.chime.aws/meetings/${meetingId}`);
 
+            await page.waitForURL(url => {
+                const parsedUrl = new URL(url);
+                return parsedUrl.pathname === '/anonymousJoin';
+            });
             await page.waitForLoadState('domcontentloaded');
-
 
             await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
             await page.press('input[id="name"]', String(this.meetings[meetingId].bots.length + 1));
