@@ -1,5 +1,9 @@
 #!/bin/bash
 
+git clone https://github.com/sbcarp/chime-meeting-virtual-attendee.git
+
+cd chime-meeting-virtual-attendee
+
 git pull
 
 # Update and upgrade packages
