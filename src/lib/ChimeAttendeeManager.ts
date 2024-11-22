@@ -123,10 +123,13 @@ class ChimeAttendeeManager {
                 await locator.evaluate((input: HTMLInputElement) => input.click())
             }
 
-            await page.click('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input', {
-                force: true,
-                timeout: 20000,
-            });
+            const locator = page.locator('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input');
+                await locator.evaluate((input: HTMLInputElement) => input.click())
+
+            // await page.click('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input', {
+            //     force: true,
+            //     timeout: 20000,
+            // });
 
 
 
