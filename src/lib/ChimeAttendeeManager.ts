@@ -101,6 +101,7 @@ class ChimeAttendeeManager {
             await page.waitForLoadState('domcontentloaded');
 
             await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
+            await page.press('input[id="name"]', ' ');
 
             await page.click('button.Button--enabled:has-text("Join meeting now")', {
                 timeout: 20000,
@@ -108,19 +109,21 @@ class ChimeAttendeeManager {
 
             await page.waitForLoadState();
 
-            try {
-                await page.click('button[data-id="awsccc-cb-btn-accept"]', {
-                    force: true,
-                    timeout: 1000
-                });
-            } catch (error) {
+            // try {
+            //     await page.click('button[data-id="awsccc-cb-btn-accept"]', {
+            //         force: true,
+            //         timeout: 1000
+            //     });
+            // } catch (error) {
 
-            }
+            // }
 
             if (!enableMic) {
                 const locator = page.locator('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input');
                 await locator.evaluate((input: HTMLInputElement) => input.click())
             }
+
+
 
             const locator = page.locator('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input');
             await locator.evaluate((input: HTMLInputElement) => input.click())
@@ -132,11 +135,21 @@ class ChimeAttendeeManager {
 
 
 
+
+
             const joinButtonSelector = enableCamera
                 ? 'button[data-test-id="DevicePreviewJoinWithVideo"]'
                 : 'button[data-test-id="DevicePreviewJoinBtn"]';
 
             await page.click(joinButtonSelector, { timeout: 20000 });
+
+            await page.waitForSelector('nav[data-testid="control-bar"]');
+            if (enableMic) {
+                try {
+                    page.click('button#audio[aria-label*="Unmute my microphone"]', { timeout: 5000 })
+                } catch (error) {
+                }
+            }
 
             this.meetings[meetingId].bots.push({ id: botId, browser, page, cameraEnabled: enableCamera, micEnabled: enableMic });
         } catch (error) {
