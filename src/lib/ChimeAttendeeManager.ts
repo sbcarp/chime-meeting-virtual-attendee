@@ -58,6 +58,8 @@ class ChimeAttendeeManager {
                 '--ignore-ssl-errors',
                 '--disable-blink-features=AutomationControlled',
                 '--no-first-run',
+                '--disk-cache-dir=/dev/null',
+                '--disk-cache-size=1'
             ],
         });
 
