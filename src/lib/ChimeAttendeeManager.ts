@@ -65,8 +65,8 @@ class ChimeAttendeeManager {
                 // '--disable-default-apps',
                 // '--disable-sync',
                 // '--disable-translate',
-                // '--disable-background-timer-throttling',
-                // '--disable-renderer-backgrounding',
+                '--disable-background-timer-throttling',
+                '--disable-renderer-backgrounding',
                 // '--incognito',
                 // '--disable-logging',
                 // '--webrtc-max-cpu-consumption-percentage=100',
@@ -121,6 +121,7 @@ class ChimeAttendeeManager {
             if (!enableMic) {
                 const locator = page.locator('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input');
                 await locator.evaluate((input: HTMLInputElement) => input.click())
+                console.log(locator)
             }
 
             const locator = page.locator('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input');
