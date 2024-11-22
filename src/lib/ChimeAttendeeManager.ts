@@ -101,7 +101,6 @@ class ChimeAttendeeManager {
             await page.waitForLoadState('domcontentloaded');
 
             await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
-            await page.press('input[id="name"]', String(this.meetings[meetingId].bots.length + 1));
 
             await page.click('button.Button--enabled:has-text("Join meeting now")', {
                 timeout: 20000,
@@ -118,12 +117,9 @@ class ChimeAttendeeManager {
 
             }
 
-            const isJoinMutedChecked = await page.isChecked('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input')
-            console.log('isJoinMutedChecked', isJoinMutedChecked)
-            if (isJoinMutedChecked && enableMic) {
+            if (!enableMic) {
                 const locator = page.locator('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input');
                 await locator.evaluate((input: HTMLInputElement) => input.click())
-                console.log('enableMic')
             }
 
             const locator = page.locator('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input');
