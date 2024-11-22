@@ -118,14 +118,16 @@ class ChimeAttendeeManager {
 
             }
 
-            if (!enableMic) {
+            const isJoinMutedChecked = await page.isChecked('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input')
+            console.log('isJoinMutedChecked', isJoinMutedChecked)
+            if (isJoinMutedChecked && enableMic) {
                 const locator = page.locator('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input');
                 await locator.evaluate((input: HTMLInputElement) => input.click())
-                console.log(locator)
+                console.log('enableMic')
             }
 
             const locator = page.locator('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input');
-                await locator.evaluate((input: HTMLInputElement) => input.click())
+            await locator.evaluate((input: HTMLInputElement) => input.click())
 
             // await page.click('div[data-test-id="DeviceSetupVoiceFocusCheckbox"] input', {
             //     force: true,
