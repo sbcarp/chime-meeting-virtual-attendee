@@ -38,7 +38,7 @@ class ChimeAttendeeManager {
     private async launchBot(meetingId: string, enableCamera: boolean, enableMic: boolean): Promise<void> {
         console.log('import.meta.dirname', import.meta.dirname)
         const browser: Browser = await chromium.launch({
-            headless: false,
+            headless: true,
             args: [
                 '--use-fake-ui-for-media-stream',
                 '--use-fake-device-for-media-stream',
