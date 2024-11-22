@@ -31,4 +31,4 @@ export CUSTOM_ASSETS_FOLDER="/memory_cache"
 npm install
 
 # Run npm start dev
-npm start dev
+npm run dev
