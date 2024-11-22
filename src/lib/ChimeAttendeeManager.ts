@@ -58,8 +58,7 @@ class ChimeAttendeeManager {
                 '--ignore-ssl-errors',
                 '--disable-blink-features=AutomationControlled',
                 '--no-first-run',
-                '--disk-cache-dir=/dev/null',
-                '--disk-cache-size=1'
+                '--disk-cache-size=1',
             ],
         });
 
@@ -73,6 +72,7 @@ class ChimeAttendeeManager {
 
         try {
             const context = await browser.newContext({
+                storageState: undefined,
                 viewport: null,
                 permissions: ['camera', 'microphone'],
                 userAgent:
