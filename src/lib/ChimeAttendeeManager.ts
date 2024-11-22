@@ -48,7 +48,7 @@ class ChimeAttendeeManager {
                 '--use-fake-ui-for-media-stream',
                 '--use-fake-device-for-media-stream',
                 `--use-file-for-fake-video-capture=${assetsFolder}/test_video.y4m`,
-                `--use-file-for-fake-audio-capture=${assetsFolder}/assets/test_audio.wav`,
+                `--use-file-for-fake-audio-capture=${assetsFolder}/test_audio.wav`,
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-web-security',
