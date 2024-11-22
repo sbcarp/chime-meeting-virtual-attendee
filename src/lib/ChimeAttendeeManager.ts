@@ -66,6 +66,9 @@ class ChimeAttendeeManager {
                 '--disable-translate',
                 '--disable-background-timer-throttling',
                 '--disable-renderer-backgrounding',
+                '--incognito',
+                '--disable-logging',
+                '--webrtc-max-cpu-consumption-percentage=100',
             ],
         });
 
