@@ -58,7 +58,14 @@ class ChimeAttendeeManager {
                 '--ignore-ssl-errors',
                 '--disable-blink-features=AutomationControlled',
                 '--no-first-run',
-                '--disk-cache-size=1',
+                '--disk-cache-size=0',
+                '--disable-dev-shm-usage',
+                '--disable-extensions',
+                '--disable-default-apps',
+                '--disable-sync',
+                '--disable-translate',
+                '--disable-background-timer-throttling',
+                '--disable-renderer-backgrounding',
             ],
         });
 
