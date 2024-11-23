@@ -220,6 +220,8 @@ class ChimeAttendeeManager {
         for (let i = 0; i < Math.min(maxConcurrency, this.queue.length); i++) {
             launchNext();
         }
+
+        return hasMicEnabled;
     }
 
 
@@ -290,8 +292,7 @@ class ChimeAttendeeManager {
                 }
                 return false;
             } else if (currentBots.length < desiredCount) {
-                this.launchBotsConcurrently(meetingId, enableCamera, enableMicForFirstBot, desiredCount, currentBots, 10);
-                return true;
+                return await this.launchBotsConcurrently(meetingId, enableCamera, enableMicForFirstBot, desiredCount, currentBots, 10);
             }
         }
 
@@ -299,8 +300,8 @@ class ChimeAttendeeManager {
         const activeVideoBots = meeting.bots.filter((bot) => bot.cameraEnabled);
         const activeNoneVideoBots = meeting.bots.filter((bot) => !bot.cameraEnabled);
 
-        const addingBot = await adjustBotsHelper(activeVideoBots, meeting.desiredVideoBots, meetingId, true, meeting.enableAudioForFirstBot);
-        await adjustBotsHelper(activeNoneVideoBots, meeting.desiredNoneVideoBots, meetingId, false, !addingBot && meeting.enableAudioForFirstBot);
+        const hasMicEnabled = await adjustBotsHelper(activeVideoBots, meeting.desiredVideoBots, meetingId, true, meeting.enableAudioForFirstBot);
+        await adjustBotsHelper(activeNoneVideoBots, meeting.desiredNoneVideoBots, meetingId, false, !hasMicEnabled && meeting.enableAudioForFirstBot);
     }
 
 
