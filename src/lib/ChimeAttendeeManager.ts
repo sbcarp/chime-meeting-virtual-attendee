@@ -93,7 +93,7 @@ class ChimeAttendeeManager {
             const page: Page = await context.newPage();
 
 
-            await this.navigateToMeeting(page, meetingId);
+            await this.navigateToMeeting(page, meetingId, `${enableMic ? 'A' : ''}${enableCamera ? 'V' : ''}Bot`);
 
             await page.waitForLoadState();
 
@@ -146,7 +146,7 @@ class ChimeAttendeeManager {
         }
     }
 
-    private async navigateToMeeting(page: Page, meetingId: string) {
+    private async navigateToMeeting(page: Page, meetingId: string, botName: string) {
         const maxRetries = 1;
         let attempt = 0;
 
@@ -158,7 +158,7 @@ class ChimeAttendeeManager {
                     return parsedUrl.pathname === '/anonymousJoin';
                 });
                 await page.waitForLoadState('domcontentloaded');
-                await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
+                await page.fill('input[id="name"]', botName, { timeout: 20000 });
                 await page.press('input[id="name"]', ' ');
 
                 await page.click('button.Button--enabled:has-text("Join meeting now")', {
@@ -176,6 +176,52 @@ class ChimeAttendeeManager {
             }
         }
     }
+
+    private queue: (() => Promise<void>)[] = [];
+    private running = 0;
+    private async launchBotsConcurrently(
+        meetingId: string,
+        enableCamera: boolean,
+        enableMicForFirstBot: boolean,
+        desiredCount: number,
+        currentBots: Bot[],
+        maxConcurrency: number = 10
+    ) {
+
+        let hasMicEnabled = currentBots.some(b => b.micEnabled);
+
+        const botsToAdd = desiredCount - currentBots.length;
+
+        const launchNext = async () => {
+            if (this.queue.length === 0) return; // No more bots to launch
+            if (this.running >= maxConcurrency) return; // Wait for a slot to free up
+
+            this.running++; // Increment running bots counter
+            const botLauncher = this.queue.shift(); // Get the next bot from the queue
+            if (botLauncher) {
+                await botLauncher(); // Launch the bot
+            }
+            this.running--; // Decrement running bots counter
+            launchNext(); // Launch the next bot in the queue
+        };
+
+        for (let i = 0; i < botsToAdd; i++) {
+            this.queue.push(async () => {
+                if (!hasMicEnabled && enableMicForFirstBot && !this.meetings[meetingId]?.bots.some(b => b.micEnabled)) {
+                    await this.launchBot(meetingId, enableCamera, true);
+                    hasMicEnabled = true;
+                } else {
+                    await this.launchBot(meetingId, enableCamera, false);
+                }
+            });
+        }
+
+        // Kick off up to `maxConcurrency` bots
+        for (let i = 0; i < Math.min(maxConcurrency, this.queue.length); i++) {
+            launchNext();
+        }
+    }
+
 
     public async removeBot(meetingId: string, botId: string): Promise<void> {
         const meeting = this.meetings[meetingId];
@@ -229,42 +275,35 @@ class ChimeAttendeeManager {
             meeting.desiredNoneVideoBots = desiredNoneVideoBots;
         }
 
-        const adjustBotsHelper = (
+        const adjustBotsHelper = async (
             currentBots: Bot[],
             desiredCount: number,
             meetingId: string,
             enableCamera: boolean,
             enableMicForFirstBot: boolean
         ) => {
-            let hasMicEnabled = false;
             if (currentBots.length > desiredCount) {
                 const botsToRemove = currentBots.length - desiredCount;
                 for (let i = 0; i < botsToRemove; i++) {
                     const bot = currentBots.pop();
                     if (bot) this.removeBot(meetingId, bot.id);
                 }
+                return false;
             } else if (currentBots.length < desiredCount) {
-                const botsToAdd = desiredCount - currentBots.length;
-                for (let i = 0; i < botsToAdd; i++) {
-                    if (!hasMicEnabled && enableMicForFirstBot && !this.meetings[meetingId]?.bots.some(b => b.micEnabled)) {
-                        this.launchBot(meetingId, enableCamera, true);
-                        hasMicEnabled = true;
-                    }
-                    else {
-                        this.launchBot(meetingId, enableCamera, false);
-                    }
-                }
+                this.launchBotsConcurrently(meetingId, enableCamera, enableMicForFirstBot, desiredCount, currentBots, 10);
+                return true;
             }
-            return hasMicEnabled;
         }
 
 
         const activeVideoBots = meeting.bots.filter((bot) => bot.cameraEnabled);
         const activeNoneVideoBots = meeting.bots.filter((bot) => !bot.cameraEnabled);
 
-        const hasCameraEnabled = adjustBotsHelper(activeVideoBots, meeting.desiredVideoBots, meetingId, true, meeting.enableAudioForFirstBot);
-        adjustBotsHelper(activeNoneVideoBots, meeting.desiredNoneVideoBots, meetingId, false, !hasCameraEnabled && meeting.enableAudioForFirstBot);
+        const addingBot = await adjustBotsHelper(activeVideoBots, meeting.desiredVideoBots, meetingId, true, meeting.enableAudioForFirstBot);
+        await adjustBotsHelper(activeNoneVideoBots, meeting.desiredNoneVideoBots, meetingId, false, !addingBot && meeting.enableAudioForFirstBot);
     }
+
+
 
     public getMeetingStatus(): { [meetingId: string]: MeetingStatus } {
         const status: { [meetingId: string]: MeetingStatus } = {};
