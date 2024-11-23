@@ -92,20 +92,8 @@ class ChimeAttendeeManager {
 
             const page: Page = await context.newPage();
 
-            await page.goto(`https://app.chime.aws/meetings/${meetingId}`);
 
-            await page.waitForURL(url => {
-                const parsedUrl = new URL(url);
-                return parsedUrl.pathname === '/anonymousJoin';
-            });
-            await page.waitForLoadState('domcontentloaded');
-
-            await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
-            await page.press('input[id="name"]', ' ');
-
-            await page.click('button.Button--enabled:has-text("Join meeting now")', {
-                timeout: 20000,
-            });
+            await this.navigateToMeeting(page, meetingId);
 
             await page.waitForLoadState();
 
@@ -157,6 +145,38 @@ class ChimeAttendeeManager {
             this.removeBot(meetingId, botId);
         }
     }
+
+    private async navigateToMeeting(page: Page, meetingId: string) {
+        const maxRetries = 1;
+        let attempt = 0;
+
+        while (attempt <= maxRetries) {
+            try {
+                await page.goto(`https://app.chime.aws/meetings/${meetingId}`);
+                await page.waitForURL(url => {
+                    const parsedUrl = new URL(url);
+                    return parsedUrl.pathname === '/anonymousJoin';
+                });
+                await page.waitForLoadState('domcontentloaded');
+                await page.fill('input[id="name"]', 'bot', { timeout: 20000 });
+                await page.press('input[id="name"]', ' ');
+
+                await page.click('button.Button--enabled:has-text("Join meeting now")', {
+                    timeout: 20000,
+                });
+                // Break out of the loop on success
+                break;
+            } catch (error) {
+                attempt++;
+                if (attempt > maxRetries) {
+                    console.error('Failed to navigate after retrying:', error);
+                    throw error; // Re-throw the error if retries exhausted
+                }
+                console.warn(`Retry attempt ${attempt} due to error:`, error);
+            }
+        }
+    }
+
     public async removeBot(meetingId: string, botId: string): Promise<void> {
         const meeting = this.meetings[meetingId];
         if (!meeting) return;
