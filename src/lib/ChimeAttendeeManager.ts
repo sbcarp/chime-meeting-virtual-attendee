@@ -36,6 +36,19 @@ class ChimeAttendeeManager {
         return ChimeAttendeeManager.instance;
     }
 
+    private lastChatMessageTime = 0;
+
+    private canSendChatMessage(): boolean {
+        const currentTime = Date.now();
+        const timeSinceLastMessage = currentTime - this.lastChatMessageTime;
+        this.lastChatMessageTime = currentTime;
+        if (timeSinceLastMessage >= 1000) {
+            this.lastChatMessageTime = currentTime;
+            return true;
+        }
+        return false;
+    }
+
 
     private async launchBot(meetingId: string, enableCamera: boolean, enableMic: boolean): Promise<void> {
         console.log('import.meta.dirname', import.meta.dirname)
@@ -144,6 +157,9 @@ class ChimeAttendeeManager {
                     try {
                         if (!browser.isConnected()) {
                             clearTimeout(chatInterval);
+                            return;
+                        }
+                        if (!this.canSendChatMessage()) {
                             return;
                         }
                         const sentence = generateRandomSentence(50);
