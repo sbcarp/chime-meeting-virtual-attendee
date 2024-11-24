@@ -139,20 +139,30 @@ class ChimeAttendeeManager {
 
             this.meetings[meetingId].bots.push({ id: botId, browser, page, cameraEnabled: enableCamera, micEnabled: enableMic });
 
-            const chatInterval = setInterval(async () => {
-                try {
-                    if (!browser.isConnected()) {
-                        clearInterval(chatInterval);
-                        return;
+            const sendChatMessage = () => {
+                const chatInterval = setTimeout(async () => {
+                    try {
+                        if (!browser.isConnected()) {
+                            clearTimeout(chatInterval);
+                            return;
+                        }
+                        const sentence = generateRandomSentence(50);
+                        await page.fill('textarea[data-testid="textarea"]', sentence);
+                        await page.press('textarea[data-testid="textarea"]', 'Enter');
+                    } catch (error) {
+                        console.error(error)
                     }
-                    const sentence = generateRandomSentence(50);
-                    await page.fill('textarea[data-testid="textarea"]', sentence);
-                    await page.press('textarea[data-testid="textarea"]', ' ');
-                    await page.press('textarea[data-testid="textarea"]', 'Enter');
-                } catch (error) {
-                    console.error(error)
-                }
-            }, 5000);
+                    sendChatMessage();
+                }, 5000)
+            }
+            try {
+                await page.click('button[aria-label*="Open chat panel"]', { timeout: 30000 })
+                sendChatMessage();
+            } catch (error) {
+                console.log(error)
+            }
+
+
         } catch (error) {
             console.error(error);
             browser.close();
