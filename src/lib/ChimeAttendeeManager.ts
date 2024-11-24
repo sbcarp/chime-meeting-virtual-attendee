@@ -5,6 +5,7 @@ import type { Browser, Page } from 'playwright';
 import type { MeetingStatus } from '$lib/types';
 import { uniqueId } from 'lodash-es';
 import os from 'os';
+import { generateRandomSentence } from './string';
 
 interface Bot {
     id: string,
@@ -59,17 +60,14 @@ class ChimeAttendeeManager {
                 '--ignore-ssl-errors',
                 '--disable-blink-features=AutomationControlled',
                 '--no-first-run',
-                // '--disk-cache-size=0',
-                // '--disable-dev-shm-usage',
-                // '--disable-extensions',
-                // '--disable-default-apps',
-                // '--disable-sync',
-                // '--disable-translate',
+                '--disable-extensions',
+                '--disable-default-apps',
+                '--disable-sync',
+                '--disable-translate',
                 '--disable-background-timer-throttling',
                 '--disable-renderer-backgrounding',
-                // '--incognito',
-                // '--disable-logging',
-                // '--webrtc-max-cpu-consumption-percentage=100',
+                '--disable-logging',
+                '--webrtc-max-cpu-consumption-percentage=100',
             ],
         });
 
@@ -97,15 +95,6 @@ class ChimeAttendeeManager {
 
             await page.waitForLoadState();
 
-            // try {
-            //     await page.click('button[data-id="awsccc-cb-btn-accept"]', {
-            //         force: true,
-            //         timeout: 1000
-            //     });
-            // } catch (error) {
-
-            // }
-
             if (!enableMic) {
                 const locator = page.locator('div[data-test-id="DeviceSetupJoinMutedCheckbox"] input');
                 await locator.evaluate((input: HTMLInputElement) => input.click())
@@ -131,18 +120,41 @@ class ChimeAttendeeManager {
 
             await page.click(joinButtonSelector, { timeout: 20000 });
 
+            page.click('button[data-id="awsccc-cb-btn-accept"]', {
+                force: true,
+                timeout: 5000
+            }).catch(() => {
+                console.log('No cookie banner found');
+            });
+
             await page.waitForSelector('nav[data-testid="control-bar"]');
             if (enableMic) {
                 try {
-                    await page.click('button#audio[aria-label*="Unmute my microphone"]', { timeout: 5000 })
+                    await page.click('button#audio[aria-label*="Unmute my microphone"]', { timeout: 10000 })
                 } catch (error) {
                 }
             }
 
+
+
             this.meetings[meetingId].bots.push({ id: botId, browser, page, cameraEnabled: enableCamera, micEnabled: enableMic });
+
+            const chatInterval = setInterval(async () => {
+                try {
+                    if (!browser.isConnected()) {
+                        clearInterval(chatInterval);
+                        return;
+                    }
+                    const sentence = generateRandomSentence(50);
+                    await page.fill('textarea[data-testid="textarea"]', sentence);
+                    await page.press('textarea[data-testid="textarea"]', 'Enter');
+                } catch (error) {
+                    console.error(error)
+                }
+            }, 5000);
         } catch (error) {
             console.error(error);
-            this.removeBot(meetingId, botId);
+            browser.close();
         }
     }
 
