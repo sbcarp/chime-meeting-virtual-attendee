@@ -134,7 +134,7 @@ class ChimeAttendeeManager {
             await page.waitForSelector('nav[data-testid="control-bar"]');
             if (enableMic) {
                 try {
-                    page.click('button#audio[aria-label*="Unmute my microphone"]', { timeout: 5000 })
+                    await page.click('button#audio[aria-label*="Unmute my microphone"]', { timeout: 5000 })
                 } catch (error) {
                 }
             }
@@ -207,12 +207,7 @@ class ChimeAttendeeManager {
 
         for (let i = 0; i < botsToAdd; i++) {
             this.queue.push(async () => {
-                if (!hasMicEnabled && enableMicForFirstBot && !this.meetings[meetingId]?.bots.some(b => b.micEnabled)) {
-                    await this.launchBot(meetingId, enableCamera, true);
-                    hasMicEnabled = true;
-                } else {
-                    await this.launchBot(meetingId, enableCamera, false);
-                }
+                await this.launchBot(meetingId, enableCamera, i === 0 && enableMicForFirstBot && !this.meetings[meetingId]?.bots.some(b => b.micEnabled));
             });
         }
 
