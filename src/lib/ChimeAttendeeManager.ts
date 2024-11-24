@@ -147,6 +147,7 @@ class ChimeAttendeeManager {
                     }
                     const sentence = generateRandomSentence(50);
                     await page.fill('textarea[data-testid="textarea"]', sentence);
+                    await page.press('textarea[data-testid="textarea"]', ' ');
                     await page.press('textarea[data-testid="textarea"]', 'Enter');
                 } catch (error) {
                     console.error(error)
